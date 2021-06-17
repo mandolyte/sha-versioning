@@ -9,7 +9,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
+	"strconv"
 	"strings"
+
+	"golang.org/x/mod/semver"
 )
 
 func main() {
@@ -74,11 +78,80 @@ func main() {
 			positionsToRemove = append(positionsToRemove, i)
 		}
 	}
-	// now remove them
+	// now remove them; go backwards so indexes are stable
 	for i := len(positionsToRemove) - 1; i > -1; i-- {
 		results = remove(results, positionsToRemove[i])
 	}
 
+	// sort it by file(1) and release(2)
+	sort.Slice(results, func(i, j int) bool {
+		if results[i][2] < results[j][2] {
+			return true
+		} else if results[i][2] > results[j][2] {
+			return false
+		}
+		// equal filenames; test on release version
+		ival, jval := results[i][1], results[j][1]
+		comparevals := semver.Compare(ival, jval)
+		if comparevals == 1 {
+			return false
+		}
+		if comparevals == -1 {
+			return true
+		}
+		// note: this cannot happen!
+		log.Fatal("data has equal filename and release semver - not possible!")
+		return true
+	})
+
+	// Filter out the dups, taking only the first occurrence of each SHA
+	// start comparing on row 2 (zero based)
+	var _results [][]string
+	for i := 0; i < len(results); i++ {
+		if i == 0 {
+			// this is the header
+			_results = append(_results, results[i])
+			continue
+		}
+		if i == 1 {
+			// first row, always take it
+			_results = append(_results, results[i])
+			continue
+		}
+		// if the SHA is the same as last row, discard it
+		if results[i-1][3] == results[i][3] {
+			//_results = append(_results, results[i])
+			continue
+		}
+		// take the row
+		_results = append(_results, results[i])
+	}
+
+	// finally add the revision column to each row
+	revision := 0
+	for i := 0; i < len(_results); i++ {
+		if i == 0 {
+			// add a column
+			_results[i] = append(_results[i], "Revision")
+			continue
+		}
+		if i == 1 {
+			// this is first row, always rev 1
+			revision++
+			_results[i] = append(_results[i], strconv.Itoa(revision))
+			continue
+		}
+		// if filename is unchanged from previous row
+		if _results[i][2] == _results[i-1][2] {
+			// still on same file, increment revision
+			revision++
+			_results[i] = append(_results[i], strconv.Itoa(revision))
+			continue
+		}
+		// filename changed, reset revision to zero
+		revision = 1
+		_results[i] = append(_results[i], strconv.Itoa(revision))
+	}
 	output := *repo + "_revs.csv"
 	f, err := os.Create(output)
 	defer f.Close()
@@ -88,7 +161,7 @@ func main() {
 	}
 
 	w := csv.NewWriter(f)
-	err = w.WriteAll(results) // calls Flush internally
+	err = w.WriteAll(_results) // calls Flush internally
 
 	if err != nil {
 		log.Fatal(err)
