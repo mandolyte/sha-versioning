@@ -12,12 +12,13 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"golang.org/x/mod/semver"
 )
 
 func main() {
-
+	now := time.Now().UTC()
 	repoVersions := flag.String("rv", "v1,v2", "Comma delimited list of Repo Versions: default 'v1,v2'")
 	repo := flag.String("r", "", "Repo")
 	flag.Parse()
@@ -167,8 +168,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	//fmt.Println(results)
-	log.Println("Done.")
+	stop := time.Since(now)
+	log.Printf("Done. %v", fmt.Sprintf("Elapsed Time: %v\n", stop))
 }
 
 func remove(slice [][]string, s int) [][]string {
