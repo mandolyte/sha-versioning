@@ -29,7 +29,7 @@ func main() {
 
 	rversions := strings.Split(*repoVersions, ",")
 
-	baseUrl := "https://qa.door43.org/api/v1/repos/unfoldingword"
+	baseUrl := "https://git.door43.org/api/v1/repos/unfoldingword"
 	log.Println("Start.")
 
 	var results [][]string
