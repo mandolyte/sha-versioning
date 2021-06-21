@@ -1,7 +1,9 @@
 #!/bin/sh
 
-go run shaversioning.go -r en_twl \
+go run . \
+    -r en_twl \
+    -rt twl \
     -rv v1,v2 \
-    > en_twl_revs.csv
+    -o en_twl_revs.csv
 
 
