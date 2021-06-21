@@ -13,10 +13,10 @@ import (
 	"golang.org/x/mod/semver"
 )
 
-func tsv_revisions(baseUrl, repo string, rversions []string, results [][]string) [][]string {
+func tw_revisions(baseUrl, repo string, rversions []string, results [][]string) [][]string {
 	for rv := range rversions {
-		//log.Printf("Working on verison:%v", rversions[rv])
-		fullUrl := baseUrl + "/" + repo + "/git/trees/" + rversions[rv]
+		// https://qa.door43.org/api/v1/repos/unfoldingword/en_tw/git/trees/v24?recursive=true
+		fullUrl := baseUrl + "/" + repo + "/git/trees/" + rversions[rv] + "?recursive=true"
 		resp, err := http.Get(fullUrl)
 		if err != nil {
 			log.Fatalln(err)
@@ -43,8 +43,21 @@ func tsv_revisions(baseUrl, repo string, rversions []string, results [][]string)
 					var row []string
 					nodeMap := tval.(map[string]interface{})
 					//fmt.Printf("%v,%v,%v,%v\n", *repo, rversions[rv], nodeMap["path"], nodeMap["sha"])
-					row = append(row, repo, rversions[rv], fmt.Sprintf("%v", nodeMap["path"]), fmt.Sprintf("%v", nodeMap["sha"]))
-					results = append(results, row)
+					path := fmt.Sprintf("%v", nodeMap["path"])
+					if strings.HasPrefix(path, "bible/kt") ||
+						strings.HasPrefix(path, "bible/names") ||
+						strings.HasPrefix(path, "bible/other") {
+						// if logic begins
+						snippets := strings.Split(path, "/")
+						if len(snippets) > 2 {
+							// ie, skip the folder nodes
+							category := snippets[1]
+							filename := snippets[2]
+							combo := fmt.Sprintf("%v/%v", category, filename)
+							row = append(row, repo, rversions[rv], combo, fmt.Sprintf("%v", nodeMap["sha"]))
+							results = append(results, row)
+						}
+					}
 				}
 			}
 		}
@@ -54,7 +67,7 @@ func tsv_revisions(baseUrl, repo string, rversions []string, results [][]string)
 	// identify rows to remove
 	var positionsToRemove []int
 	for i := 1; i < len(results); i++ {
-		if !strings.HasSuffix(results[i][2], ".tsv") {
+		if !strings.HasSuffix(results[i][2], ".md") {
 			positionsToRemove = append(positionsToRemove, i)
 		}
 	}

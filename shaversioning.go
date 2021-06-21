@@ -45,6 +45,10 @@ func main() {
 
 	if *repoType == "tn" || *repoType == "twl" {
 		results = tsv_revisions(baseUrl, *repo, rversions, results)
+	} else if *repoType == "tw" {
+		results = tw_revisions(baseUrl, *repo, rversions, results)
+	} else {
+		log.Fatalf("Resource not supported yet:%v", *repoType)
 	}
 
 	f, err := os.Create(*outputFile)
