@@ -47,6 +47,8 @@ func main() {
 		results = tsv_revisions(baseUrl, *repo, rversions, results)
 	} else if *repoType == "tw" {
 		results = tw_revisions(baseUrl, *repo, rversions, results)
+	} else if *repoType == "ta" {
+		results = ta_revisions(baseUrl, *repo, rversions, results)
 	} else {
 		log.Fatalf("Resource not supported yet:%v", *repoType)
 	}
