@@ -1,6 +1,12 @@
 # sha-versioning
 Deriving the number of revisions of a file in git based on SHA value in releases
 
+## To Do
+
+Implement a check to retrieve the tags rather than provide them as an input. The essential URL is:
+```
+https://qa.door43.org/api/v1/repos/unfoldingword/en_twl/releases
+```
 
 ## setup
 
