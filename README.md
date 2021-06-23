@@ -26,4 +26,8 @@ sh run_twl.sh
 ```
 which produces `en_twl_revs.csv`
 
-**WARNING: at the moment, this only works with "tsv" type resources!!**
+At this writing, the following resource types are supported:
+- Translation Academy
+- Translation Notes
+- Translation Words
+- Translation Word Lists
